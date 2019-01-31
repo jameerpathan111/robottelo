@@ -20,8 +20,25 @@ import time
 
 from automation_tools.satellite6 import hammer
 from fabric.api import execute, run
-from fauxfactory import gen_alpha
-from robottelo.test import APITestCase, settings
+from fauxfactory import gen_alpha, gen_string
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.factory import (
+    make_content_view,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.org import Org
+from robottelo.cli.puppetmodule import PuppetModule
+from robottelo.cli.repository import Repository
+from robottelo.constants import (
+    CUSTOM_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
+    FEDORA27_OSTREE_REPO,
+)
+from robottelo.test import APITestCase, CLITestCase, settings
+from robottelo.helpers import create_repo
 from upgrade.helpers.docker import (
     docker_execute_command,
     docker_wait_until_repo_list,
@@ -279,3 +296,118 @@ class ScenarioBug1429201(APITestCase):
         self.assertIsNotNone(container_ids)
         self.assertIn('Error', list(result_fail.values())[0])
         self.assertIn('Complete', list(result_pass.values())[0])
+
+
+class CVUpgradeScenario(CLITestCase):
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization, a life cycle environment,
+        and a product."""
+        super(CVUpgradeScenario, cls).setUpClass()
+        cls.org = make_org(cached=True)
+        # cls.environment = make_lifecycle_environment({u'organization-id': cls.org['id']})
+        cls.product = make_product({'organization-id': cls.org['id']})
+        cls.cv_name = gen_string('alpha')
+        cls.yum_repo1 = make_repository({
+            'product-id': cls.product['id'],
+            'content-type': 'yum',
+            'url': FAKE_1_YUM_REPO})
+        Repository.synchronize({'id': cls.yum_repo1['id']})
+        cls.module = {'name': 'versioned', 'version': '3.3.3'}
+        cls.puppet_repo = make_repository({
+            'content-type': 'puppet',
+            'product-id': cls.product['id'],
+            'url': CUSTOM_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': cls.puppet_repo['id']})
+        cls.puppet_module = PuppetModule.list({
+            'search': 'name={name} and version={version}'.format(**cls.module)})[0]
+        cls.ostree_repo = make_repository({
+            'content-type': 'ostree',
+            'publish-via-http': 'false',
+            'product-id': cls.product['id'],
+            'url': FEDORA27_OSTREE_REPO})
+        Repository.synchronize({'id': cls.ostree_repo['id']})
+
+    @pre_upgrade
+    def test_cv_preupgrade_scenario(self):
+        content_view = make_content_view({
+            'name': self.cv_name,
+            'organization-id': self.org['id'],
+            'repository-ids': [
+                self.yum_repo1['id'], self.ostree_repo['id']]
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertEqual(
+            content_view['yum-repositories'][0]['name'],
+            self.yum_repo1['name'],
+            'Repo was not associated to CV',
+        )
+        ContentView.puppet_module_add({
+            'content-view-id': content_view['id'],
+            'name': self.puppet_module['name'],
+            'author': self.puppet_module['author'],
+        })
+        content_view = ContentView.info({'id': content_view['id']})
+        self.assertGreater(len(content_view['puppet-modules']), 0)
+        ContentView.publish({'id': content_view['id']})
+        cv = ContentView.info({'id': content_view['id']})
+        self.assertEqual(len(cv['versions']), 1)
+        global_dict = {self.__class__.__name__: {
+            'product_name': self.product['name'],
+            'yum_repo1_name': self.yum_repo1['name'],
+            'puppet_repo_name': self.puppet_repo['name'],
+            'cv_name': content_view['name'],
+            'org_name': self.org['name']},
+        }
+        create_dict(global_dict)
+
+    @post_upgrade
+    def test_cv_postupgrade_scenario(self):
+        entity_data = get_entity_data(self.__class__.__name__)
+        product_name = entity_data['product_name']
+        cv_name = entity_data['cv_name']
+        org_name = entity_data['org_name']
+        yum_repo1_name = entity_data['yum_repo1_name']
+        puppet_repo_name = entity_data['puppet_repo_name']
+        puppet_author = 'robotello'
+        yum_repo2 = make_repository({
+            'organization': org_name,
+            'content-type': 'yum',
+            'product': product_name,
+            'url': FAKE_2_YUM_REPO})
+        Repository.synchronize({'id': yum_repo2['id'],
+                                'organization': org_name})
+        ContentView.puppet_module_remove({
+            'organization': org_name,
+            'content-view': cv_name,
+            'name': puppet_repo_name,
+            'author': puppet_author,
+        })
+        content_view = ContentView.info({'name': cv_name,
+                                         'organization': org_name})
+        self.assertEqual(len(content_view['puppet-modules']), 0)
+        module = {'name': 'versioned', 'version': '2.2.2'}
+        puppet_module = PuppetModule.list({
+            'search': 'name={name} and version={version}'.format(**module)})[0]
+        ContentView.puppet_module_add({
+            'organization': org_name,
+            'content-view': cv_name,
+            'name': puppet_module['name'],
+            'author': puppet_module['author'],
+        })
+        ContentView.add_repository({
+            'name': cv_name,
+            'organization': org_name,
+            'product': product_name,
+            'repository-id': yum_repo2['id']})
+        ContentView.remove_repository({
+            'organization': org_name,
+            'name': cv_name,
+            'repository': yum_repo1_name
+        })
+        ContentView.publish({'name': self.cv_name,
+                             'organization': org_name})
+        content_view = ContentView.info({'name': cv_name,
+                                         'organization': org_name})
+        self.assertEqual(len(content_view['versions']), 2)
