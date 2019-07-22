@@ -103,7 +103,8 @@ def test_positive_check_dashboard(
             'file_upload.scap_file': oscap_content_path,
         })
         session.oscappolicy.create({
-            'create_policy.name': name,
+            'deployment_options.deploy_by': 'Ansible',
+            'policy_attributes.name': name,
             'scap_content.scap_content_resource': oscap_content_title,
             'scap_content.xccdf_profile': 'C2S for Red Hat Enterprise Linux 6',
             'schedule.period': 'Weekly',
