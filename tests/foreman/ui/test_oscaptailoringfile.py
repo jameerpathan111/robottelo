@@ -16,7 +16,6 @@
 :Upstream: No
 """
 from nailgun import entities
-
 from robottelo.config import settings
 from robottelo.datafactory import gen_string
 from robottelo.decorators import (
@@ -27,11 +26,12 @@ from robottelo.decorators import (
     stubbed,
     upgrade,
 )
+from robottelo.helpers import file_downloader
 
 
 @fixture(scope='module')
 def oscap_tailoring_path():
-    return settings.oscap.tailoring_path
+    return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier1
@@ -51,6 +51,8 @@ def test_positive_end_to_end(session, oscap_tailoring_path):
     new_name = gen_string('alpha')
     org = entities.Organization().create()
     loc = entities.Location().create()
+    import pdb
+    pdb.set_trace()
     with session:
         session.oscaptailoringfile.create({
             'file_upload.name': name,
