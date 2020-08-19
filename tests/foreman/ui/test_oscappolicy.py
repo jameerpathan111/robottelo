@@ -16,37 +16,37 @@
 """
 import os
 
+import pytest
 from nailgun import entities
 
 from robottelo import ssh
 from robottelo.api.utils import promote
+from robottelo.cli.ansible import Ansible
 from robottelo.config import settings
-from robottelo.constants import ANY_CONTEXT
 from robottelo.constants import OSCAP_PROFILE
 from robottelo.datafactory import gen_string
-from robottelo.decorators import fixture
 from robottelo.decorators import tier1
 from robottelo.decorators import tier2
 from robottelo.decorators import upgrade
 from robottelo.helpers import file_downloader
 
 
-@fixture(scope='module')
+@pytest.fixture(scope="module")
 def module_org():
     return entities.Organization().create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope="module")
 def module_loc(module_org):
     return entities.Location(organization=[module_org]).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope="module")
 def module_host_group(module_loc, module_org):
     return entities.HostGroup(location=[module_loc], organization=[module_org]).create()
 
 
-@fixture(scope='module')
+@pytest.fixture(scope="module")
 def oscap_content_path():
     # download scap content from satellite
     _, file_name = os.path.split(settings.oscap.content_path)
@@ -55,14 +55,20 @@ def oscap_content_path():
     return local_file
 
 
-@fixture(scope='module')
+@pytest.fixture(scope="module")
+def import_ansibe_roles(module_org):
+    Ansible.roles_import({'proxy-id': 1})
+    Ansible.variables_import({'proxy-id': 1})
+
+
+@pytest.fixture(scope="module")
 def oscap_tailoring_path():
     return file_downloader(settings.oscap.tailoring_path)[0]
 
 
 @tier2
 def test_positive_check_dashboard(
-    session, module_host_group, module_loc, module_org, oscap_content_path
+    session, module_host_group, module_loc, module_org, oscap_content_path, import_ansibe_roles
 ):
     """Create OpenScap Policy which is connected to the host. That policy
     dashboard should be rendered and correctly display information about
@@ -105,8 +111,6 @@ def test_positive_check_dashboard(
         },
     ).create()
     with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=ANY_CONTEXT['location'])
         session.oscapcontent.create(
             {'file_upload.title': oscap_content_title, 'file_upload.scap_file': oscap_content_path}
         )
@@ -131,7 +135,13 @@ def test_positive_check_dashboard(
 @tier1
 @upgrade
 def test_positive_end_to_end(
-    session, module_host_group, module_loc, module_org, oscap_content_path, oscap_tailoring_path
+    session,
+    module_host_group,
+    module_loc,
+    module_org,
+    oscap_content_path,
+    oscap_tailoring_path,
+    import_ansibe_roles,
 ):
     """Perform end to end testing for oscap policy component
 
@@ -151,15 +161,23 @@ def test_positive_end_to_end(
     profile_type = OSCAP_PROFILE['security7']
     tailoring_type = OSCAP_PROFILE['tailoring_rhel7']
     with session:
-        session.organization.select(org_name=ANY_CONTEXT['org'])
-        session.location.select(loc_name=ANY_CONTEXT['location'])
         # Upload oscap content to the application
         session.oscapcontent.create(
-            {'file_upload.title': oscap_content_title, 'file_upload.scap_file': oscap_content_path}
+            {
+                'file_upload.title': oscap_content_title,
+                'file_upload.scap_file': oscap_content_path,
+                'locations.resources.assigned': [module_loc.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
         )
         # Upload tailoring file to the application
         session.oscaptailoringfile.create(
-            {'file_upload.name': tailoring_name, 'file_upload.scap_file': oscap_tailoring_path}
+            {
+                'file_upload.name': tailoring_name,
+                'file_upload.scap_file': oscap_tailoring_path,
+                'locations.resources.assigned': [module_loc.name],
+                'organizations.resources.assigned': [module_org.name],
+            }
         )
         # Create new oscap policy with assigned content and tailoring file
         session.oscappolicy.create(
