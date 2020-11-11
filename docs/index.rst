@@ -1,7 +1,7 @@
 Robottelo
 =========
 
-`Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
+`Robottelo`_ is a test test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:
 
