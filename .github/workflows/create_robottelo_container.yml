@@ -1,8 +1,6 @@
 name: Create and push Robottelo container image to Quay.
 
-on:
-  push:
-    branches: master
+on: [push]
 
 jobs:
   robottelo_container:
@@ -12,6 +10,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Get image tag
+        id: image_tag
+        run: |
+          echo -n ::set-output name=IMAGE_TAG::
+          TAG="${GITHUB_REF##*/}"
+          if [ "${TAG}" == "master" ]; then
+              TAG="latest"
+          fi
+          echo "${TAG}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -32,4 +40,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.REGISTRY_SERVER }}/${{ secrets.REGISTRY_NAMESPACE }}/robottelo:latest
+          tags: ${{ secrets.REGISTRY_SERVER }}/${{ secrets.REGISTRY_NAMESPACE }}/robottelo:${{ steps.image_tag.outputs.IMAGE_TAG }}
