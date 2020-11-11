@@ -10,5 +10,7 @@ RUN curl https://raw.githubusercontent.com/SatelliteQE/broker/master/broker_sett
 
 ENV PYCURL_SSL_LIBRARY=openssl
 RUN pip install -r requirements.txt
+RUN echo "####################################################"
+RUN cat test_file
 
 CMD make test-robottelo
