@@ -15,12 +15,56 @@ from datetime import datetime, timedelta
 
 from fauxfactory import gen_string
 from manifester import Manifester
+from manifester.helpers import simple_retry
+from manifester.settings import settings as manifester_settings
 import pytest
+import requests
 
 from robottelo import constants
 from robottelo.config import settings
 from robottelo.logging import logger
 from robottelo.utils.issue_handlers import is_open
+
+
+class RhcManifestDelete(Manifester):
+    def list_all_manifests(self, offset=0, limit=100):
+        self._access_token = None
+        data = {
+            "headers": {"Authorization": f"Bearer {self.access_token}"},
+            "proxies": self.manifest_data.get("proxies", manifester_settings.proxies),
+            "params": {"force": "true"},
+        }
+        return simple_retry(
+            requests.get,
+            cmd_args=[f"{self.allocations_url}?limit={limit}&offset={offset}"],
+            cmd_kwargs=data,
+        ).json()
+
+    def delete_rhc_manifests(self, offset=0, limit=100):
+        """
+        Usage:
+            from tests.foreman.ui.test_rhc import RhcManifestDelete
+            from robottelo.config import settings
+            manifester = RhcManifestDelete(manifest_category=settings.manifest.entitlement)
+            manifester.delete_rhc_manifests()
+            Note: change offset and limit according to number of manifest on the cloud, max limit is 100.
+        """
+        self._access_token = None
+        all_manifests = self.list_all_manifests(offset=offset, limit=limit)
+        rhc_manifests = [
+            manifest for manifest in all_manifests["body"] if "RHC_" in manifest['name']
+        ]
+        for manifest in rhc_manifests:
+            data = {
+                "headers": {"Authorization": f"Bearer {self.access_token}"},
+                "proxies": self.manifest_data.get("proxies", manifester_settings.proxies),
+                "params": {"force": "true"},
+            }
+            simple_retry(
+                requests.delete,
+                cmd_args=[f"{self.allocations_url}/{manifest['uuid']}"],
+                cmd_kwargs=data,
+            )
 
 
 @pytest.fixture(scope='module')
