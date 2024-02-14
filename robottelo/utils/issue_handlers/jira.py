@@ -10,11 +10,18 @@ from robottelo.config import settings
 from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
 
-OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress", "Review")
-CLOSED_STATUSES = ("Release Pending", "Closed")
+OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
+CLOSED_STATUSES = ("Review", "Release Pending", "Closed")
 WONTFIX_RESOLUTIONS = "Obsolete"
+jr_fields = [
+    "key",
+    "summary",
+    "status",
+    "resolution",
+    "fixVersions",
+]
 
-# match any version as in `sat-6.2.x` or `sat-6.2.0` or `6.2.9`
+# match any version as in `sat-6.14.x` or `sat-6.13.0` or `6.13.9`
 # The .version group being a `d.d` string that can be casted to Version()
 VERSION_RE = re.compile(r'(?:sat-)*?(?P<version>\d\.\d)\.\w*')
 
@@ -68,7 +75,7 @@ def should_deselect_jr(issue, data=None):
 
 
 def follow_duplicates(jr):
-    """Recursivelly load the duplicate data"""
+    """recursively load the duplicate data"""
     if jr.get('dupe_data'):
         jr = follow_duplicates(jr['dupe_data'])
     return jr
@@ -78,7 +85,7 @@ def try_from_cache(issue, data=None):
     """Try to fetch issue from given data cache or previous loaded on pytest.
 
     Arguments:
-         issue {str} -- The JR reference e.g: JR:123456
+         issue {str} -- The JR reference e.g: JR:SAT-123456
          data {dict} -- Issue data indexed by <handler>:<number> or None
     """
     try:
@@ -88,7 +95,7 @@ def try_from_cache(issue, data=None):
         return data or pytest.issue_data[issue]['data']
     except (KeyError, AttributeError, ValueError):  # pragma: no cover
         # If not then call JR API again
-        return get_single_jr(str(issue).partition(':')[-1])
+        return get_single_jr(str(issue))
 
 
 def collect_data_jr(collected_data, cached_data):  # pragma: no cover
@@ -100,7 +107,7 @@ def collect_data_jr(collected_data, cached_data):  # pragma: no cover
     """
     jr_data = (
         get_data_jr(
-            [item.partition(':')[-1] for item in collected_data if item.startswith('JR:')],
+            [item for item in collected_data if item.startswith('JR:')],
             cached_data=cached_data,
         )
         or []
@@ -109,7 +116,7 @@ def collect_data_jr(collected_data, cached_data):  # pragma: no cover
         # If JR is CLOSED/DUPLICATE collect the duplicate
         collect_dupes(data, collected_data, cached_data=cached_data)
 
-        jr_key = f"JR:{data['id']}"
+        jr_key = f"JR:{data['key']}"
         data["is_open"] = is_open_jr(jr_key, data)
         collected_data[jr_key]['data'] = data
 
@@ -173,41 +180,37 @@ def get_data_jr(jr_numbers, cached_data=None):  # pragma: no cover
 
     # No cached data so Call Jira API
     logger.debug(f"Calling Jira API for {set(jr_numbers)}")
-    jr_fields = [
-        "id",
-        "summary",
-        "status",
-        "resolution",
-        "cf_last_closed",
-        "last_change_time",
-        "creation_time",
-        "flags",
-        "keywords",
-        "dupe_of",
-        "fixVersions",
-        "cf_clone_of",
-        "clone_ids",
-        "depends_on",
-    ]
     # Following fields are dynamically calculated/loaded
     for field in ('is_open', 'clones', 'version'):
         assert field not in jr_fields
 
     # Generate jql
-    jql = ''
-    for jr_number in jr_numbers:
-        jql = jql.join(f"id = {jr_number} OR ")
+    jql = ' OR '.join([f"id = {id}" for id in jr_numbers])
 
     response = requests.get(
-        f"{settings.jira.url}/rest/api/latest/issue/",
+        f"{settings.jira.url}/rest/api/latest/search/",
         params={
-            "id": ",".join(set(jr_numbers)),
-            "include_fields": ",".join(jr_fields),
+            "jql": jql,
+            "fields": ",".join(jr_fields),
         },
         headers={"Authorization": f"Bearer {settings.jira.api_key}"},
     )
     response.raise_for_status()
-    data = response.json().get('bugs')
+    data = response.json().get('issues')
+    # Clean the data, only keep the required info.
+    data = {
+        issue['key']: {
+            'summary': issue['fields']['summary'],
+            'status': issue['fields']['status']['name'],
+            'resolution': issue['fields']['resolution'].get('name', None)
+            if issue['fields']['resolution']
+            else None,
+            'fixVersions': issue['fields']['fixVersions'],
+        }
+        for issue in data
+        if issue is not None
+    }
+
     CACHED_RESPONSES['get_data'][str(sorted(jr_numbers))] = data
     return data
 
@@ -218,7 +221,7 @@ def get_single_jr(number, cached_data=None):  # pragma: no cover
     jr_data = CACHED_RESPONSES['get_single'].get(number)
     if not jr_data:
         try:
-            jr_data = cached_data[f"JR:{number}"]['data']
+            jr_data = cached_data[f"{number}"]['data']
         except (KeyError, TypeError):
             jr_data = get_data_jr([str(number)], cached_data)
             jr_data = jr_data and jr_data[0]
@@ -229,12 +232,10 @@ def get_single_jr(number, cached_data=None):  # pragma: no cover
 def get_default_jr(number):  # pragma: no cover
     """This is the default JR data when it is not possible to reach JR api"""
     return {
-        "id": number,
+        "key": number,
         "is_open": True,  # All marked is skipped
         "is_deselected": False,  # nothing is deselected
         "status": "",
         "resolution": "",
-        "clone_ids": [],
-        "cf_clone_of": "",
         "error": "missing jira api_key",
     }
