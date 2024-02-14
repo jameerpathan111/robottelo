@@ -65,6 +65,8 @@ def pytest_configure(config):
         (
             "BZ(number): Bugzillas related to the testcase, "
             "for use with `--BZ <number>` option for collection."
+        ),
+        (
             "JR(number): Jira's related to the testcase, "
             "for use with `--JR <number>` option for collection."
         ),
@@ -102,19 +104,31 @@ def pytest_collection_modifyitems(session, items, config):
 
         # remove items from collection
         if bz_filters or jr_filters:
-            # Only include items which have BZ/JR mark that includes any of the filtered bz numbers
+            # Only include items which have BZ mark that includes any of the filtered bz numbers
             item_bz_marks = set(getattr(item.get_closest_marker('BZ', None), 'args', []))
-            item_jr_marks = set(getattr(item.get_closest_marker('JR', None), 'args', []))
-            if bool((set(bz_filters) & item_bz_marks) or (set(jr_filters) & item_jr_marks)):
+            if bool(set(bz_filters) & item_bz_marks):
                 selected.append(item)
             else:
                 logger.debug(
-                    f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters} or JR filter {jr_filters}'
-                    f'and available marks {item_bz_marks} or {item_jr_marks}'
+                    f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters}'
+                    f'and available marks {item_bz_marks}'
                 )
                 deselected.append(item)
                 continue  # move to the next item
             # append only when there is a BZ in common between the lists
+        if jr_filters:
+            # Only include items which have JR mark that includes any of the filtered jr numbers
+            item_jr_marks = set(getattr(item.get_closest_marker('JR', None), 'args', []))
+            if bool(set(jr_filters) & item_jr_marks):
+                selected.append(item)
+            else:
+                logger.debug(
+                    f'Deselected test [{item.nodeid}] due to JR filter {jr_filters}'
+                    f'and available marks {item_jr_marks}'
+                )
+                deselected.append(item)
+                continue  # move to the next item
+            # append only when there is a JR in common between the lists
         else:
             selected.append(item)
 
@@ -204,7 +218,7 @@ def generate_issue_collection(items, config):  # pragma: no cover
     use_bz_cache = config.getoption('bz_cache', None)  # use existing json cache?
     use_jr_cache = config.getoption('jr_cache', None)  # use existing json cache?
     cached_data = None
-    if use_bz_cache or use_jr_cache:
+    if use_bz_cache:
         try:
             with open(DEFAULT_BZ_CACHE_FILE) as bz_cache_file:
                 logger.info(f'Using BZ cache file for issue collection: {DEFAULT_BZ_CACHE_FILE}')

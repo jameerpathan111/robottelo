@@ -137,7 +137,7 @@ def collect_data_bz(collected_data, cached_data):  # pragma: no cover
 
 
 def collect_dupes(bz, collected_data, cached_data=None):  # pragma: no cover
-    """Recursivelly find for duplicates"""
+    """Recursively find for duplicates"""
     cached_data = cached_data or {}
     if bz.get('resolution') == 'DUPLICATE':
         # Collect duplicates
@@ -188,7 +188,7 @@ def get_data_bz(bz_numbers, cached_data=None):  # pragma: no cover
 
     Arguments:
         bz_numbers {list of str} -- ['123456', ...]
-        cached_data
+        cached_data {dict} -- Cached data previous loaded from API
 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]

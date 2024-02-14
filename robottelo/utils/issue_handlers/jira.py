@@ -7,19 +7,13 @@ import requests
 from tenacity import retry, stop_after_attempt, wait_fixed
 
 from robottelo.config import settings
+from robottelo.constants import (
+    JR_CLOSED_STATUSES,
+    JR_OPEN_STATUSES,
+    JR_WONTFIX_RESOLUTIONS,
+)
 from robottelo.hosts import get_sat_version
 from robottelo.logging import logger
-
-OPEN_STATUSES = ("New", "Backlog", "Refinement", "To Do", "In Progress")
-CLOSED_STATUSES = ("Review", "Release Pending", "Closed")
-WONTFIX_RESOLUTIONS = "Obsolete"
-jr_fields = [
-    "key",
-    "summary",
-    "status",
-    "resolution",
-    "fixVersions",
-]
 
 # match any version as in `sat-6.14.x` or `sat-6.13.0` or `6.13.9`
 # The .version group being a `d.d` string that can be casted to Version()
@@ -34,25 +28,29 @@ def is_open_jr(issue, data=None):
         issue {str} -- The JR reference e.g: JR:SAT-20548
         data {dict} -- Issue data indexed by <handler>:<number> or None
     """
-
     jr = try_from_cache(issue, data)
-    if jr.get("is_open") is not None:  # bug has been already processed
+    if jr.get("is_open") is not None:  # issue has been already processed
         return jr["is_open"]
 
     jr = follow_duplicates(jr)
+    status = jr.get('status', '')
+    resolution = jr.get('resolution', '')
 
     # JR is explicitly in OPEN status
-    if jr.get('status') in OPEN_STATUSES:
+    if status in JR_OPEN_STATUSES:
         return True
 
     # JR is Closed/Obsolete so considered not fixed yet, JR is open
-    if jr.get('status') in CLOSED_STATUSES and jr.get('resolution') in WONTFIX_RESOLUTIONS:
+    if status in JR_CLOSED_STATUSES and resolution in JR_WONTFIX_RESOLUTIONS:
         return True
 
     # JR is Closed with a resolution in (Done, Done-Errata, ...)
     # server.version is higher or equal than JR fixVersion
     # Consider fixed, JR is not open
-    return get_sat_version() < min(jr.get('fixVersions')) or Version('0')
+    fix_version = jr.get('fixVersions')
+    if fix_version:
+        return get_sat_version() < Version(min(fix_version))
+    return status not in JR_CLOSED_STATUSES
 
 
 def should_deselect_jr(issue, data=None):
@@ -66,12 +64,12 @@ def should_deselect_jr(issue, data=None):
     """
 
     jr = try_from_cache(issue, data)
-    if jr.get("is_deselected") is not None:  # bug has been already processed
+    if jr.get("is_deselected") is not None:  # issue has been already processed
         return jr["is_deselected"]
 
     jr = follow_duplicates(jr)
 
-    return jr.get('status') in CLOSED_STATUSES and jr.get('resolution') in WONTFIX_RESOLUTIONS
+    return jr.get('status') in JR_CLOSED_STATUSES and jr.get('resolution') in JR_WONTFIX_RESOLUTIONS
 
 
 def follow_duplicates(jr):
@@ -95,11 +93,11 @@ def try_from_cache(issue, data=None):
         return data or pytest.issue_data[issue]['data']
     except (KeyError, AttributeError, ValueError):  # pragma: no cover
         # If not then call JR API again
-        return get_single_jr(str(issue))
+        return get_single_jr(str(issue).partition(':')[-1])
 
 
 def collect_data_jr(collected_data, cached_data):  # pragma: no cover
-    """Collect data from BUgzilla API and aggregate in a dictionary.
+    """Collect data from Jira API and aggregate in a dictionary.
 
     Arguments:
         collected_data {dict} -- dict with JRs collected by pytest
@@ -107,7 +105,7 @@ def collect_data_jr(collected_data, cached_data):  # pragma: no cover
     """
     jr_data = (
         get_data_jr(
-            [item for item in collected_data if item.startswith('JR:')],
+            [item.partition(':')[-1] for item in collected_data if item.startswith('JR:')],
             cached_data=cached_data,
         )
         or []
@@ -122,7 +120,7 @@ def collect_data_jr(collected_data, cached_data):  # pragma: no cover
 
 
 def collect_dupes(jr, collected_data, cached_data=None):  # pragma: no cover
-    """Recursivelly find for duplicates"""
+    """Recursively find for duplicates"""
     cached_data = cached_data or {}
     if jr.get('resolution') == 'Duplicate':
         # Collect duplicates
@@ -150,7 +148,7 @@ def get_data_jr(jr_numbers, cached_data=None):  # pragma: no cover
 
     Arguments:
         jr_numbers {list of str} -- ['123456', ...]
-        cached_data
+        cached_data {dict} -- Cached data previous loaded from API
 
     Returns:
         [list of dicts] -- [{'id':..., 'status':..., 'resolution': ...}]
@@ -180,8 +178,15 @@ def get_data_jr(jr_numbers, cached_data=None):  # pragma: no cover
 
     # No cached data so Call Jira API
     logger.debug(f"Calling Jira API for {set(jr_numbers)}")
+    jr_fields = [
+        "key",
+        "summary",
+        "status",
+        "resolution",
+        "fixVersions",
+    ]
     # Following fields are dynamically calculated/loaded
-    for field in ('is_open', 'clones', 'version'):
+    for field in ('is_open', 'version'):
         assert field not in jr_fields
 
     # Generate jql
@@ -198,19 +203,21 @@ def get_data_jr(jr_numbers, cached_data=None):  # pragma: no cover
     response.raise_for_status()
     data = response.json().get('issues')
     # Clean the data, only keep the required info.
-    data = {
-        issue['key']: {
+    data = [
+        {
+            'key': issue['key'],
             'summary': issue['fields']['summary'],
             'status': issue['fields']['status']['name'],
-            'resolution': issue['fields']['resolution'].get('name', None)
+            'resolution': issue['fields']['resolution']['name']
             if issue['fields']['resolution']
-            else None,
-            'fixVersions': issue['fields']['fixVersions'],
+            else '',
+            'fixVersions': [ver['name'] for ver in issue['fields']['fixVersions']]
+            if issue['fields']['fixVersions']
+            else [],
         }
         for issue in data
         if issue is not None
-    }
-
+    ]
     CACHED_RESPONSES['get_data'][str(sorted(jr_numbers))] = data
     return data
 
