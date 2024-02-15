@@ -1,6 +1,7 @@
 Team:
     required: true
 BZ: {}
+JR: {}
 CaseAutomation:
     casesensitive: true
     choices:

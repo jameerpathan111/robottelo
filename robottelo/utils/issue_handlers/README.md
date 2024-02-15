@@ -18,13 +18,13 @@ e.g: `is_open_bz, is_open_gh, is_open_jr` for Bugzilla, Github and Jira.
 This function is dispatched from `robottelo.helpers.is_open` that is also used
 to check for status in the `pytest.mark.skip_if_open` marker.
 
-It receives the issue handler code and number as a string ex: `BZ:123456` for Bugzilla.
+It receives the issue handler code and number as a string ex: `BZ:123456` for Bugzilla and `JR:SAT-22761` for Jira.
 
 It returns a bool, `True` is issue is open.
 
 ### `should_deselect_<handler_code>(issue, data)`
 
-e.g: `should_deselect_bz` for Bugzilla.
+e.g: `should_deselect_bz` for Bugzilla and `should_deselect_jr` for Jira.
 
 This function is dispatched from `robottelo.helpers.should_deselect` and
 it is used on `conftest.py` to dynamically mark a test case with `pytest.mark.deselect`
@@ -78,10 +78,10 @@ Example of `collected_data`:
 ## Issue handlers implemented
 
 - `.bugzilla.py`: BZ:123456
+- `.jira.py`: JR:SAT-22761
 
 ## Issue handlers to be implemented
 
 - `.github.py`: GH:satelliteqe/robottelo#123
 - `.gitlab.py`: GL:path/to/repo#123
-- `.jira.py`: JR:SATQE-4561
 - `.redmine.py`: RM:pulp.plan.io#5580

@@ -110,7 +110,7 @@ def pytest_collection_modifyitems(session, items, config):
                 selected.append(item)
             else:
                 logger.debug(
-                    f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters}'
+                    f'Deselected test [{item.nodeid}] due to BZ filter {bz_filters} '
                     f'and available marks {item_bz_marks}'
                 )
                 deselected.append(item)
@@ -123,7 +123,7 @@ def pytest_collection_modifyitems(session, items, config):
                 selected.append(item)
             else:
                 logger.debug(
-                    f'Deselected test [{item.nodeid}] due to JR filter {jr_filters}'
+                    f'Deselected test [{item.nodeid}] due to JR filter {jr_filters} '
                     f'and available marks {item_jr_marks}'
                 )
                 deselected.append(item)
