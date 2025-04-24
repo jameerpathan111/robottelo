@@ -27,6 +27,7 @@ driven`_. There are three types of tests:
 * UI tests, which rely on Selenium's `WebDriver`_ through `airgun`_.
 * CLI tests, which rely on `ssh2-python`_.
 * API tests, which rely on `Requests`_ through `nailgun`_.
+* Testing new setup
 
 The `full documentation
 <http://robottelo.readthedocs.org/en/latest/index.html>`_ is available on
