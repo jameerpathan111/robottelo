@@ -18,45 +18,6 @@ class VersionedContent:
         return self.os_version.major
 
     @cached_property
-    def REPOSET(self):
-        try:
-            if self._v_major > 7:
-                sys_reposets = {
-                    'rhel_bos': constants.REPOSET[f'rhel{self._v_major}_bos'],
-                    'rhel_aps': constants.REPOSET[f'rhel{self._v_major}_aps'],
-                }
-            else:
-                sys_reposets = {
-                    'rhel': constants.REPOSET[f'rhel{self._v_major}'],
-                    'rhscl': constants.REPOSET[f'rhscl{self._v_major}'],
-                }
-            reposets = {'rhst': constants.REPOSET[f'rhst{self._v_major}']}
-        except KeyError as err:
-            raise ValueError(f'Unsupported system version: {self._v_major}') from err
-        return sys_reposets | reposets
-
-    @cached_property
-    def REPOS(self):
-        try:
-            if self._v_major > 7:
-                sys_repos = {
-                    'rhel_bos': constants.REPOS[f'rhel{self._v_major}_bos'],
-                    'rhel_aps': constants.REPOS[f'rhel{self._v_major}_aps'],
-                }
-            else:
-                sys_repos = {
-                    'rhel': constants.REPOS[f'rhel{self._v_major}'],
-                    'rhscl': constants.REPOS[f'rhscl{self._v_major}'],
-                }
-            repos = {
-                'rhsclient': constants.REPOS[f'rhsclient{self._v_major}'],
-                'rhsc': constants.REPOS[f'rhsc{self._v_major}'],
-            }
-            return sys_repos | repos
-        except KeyError as err:
-            raise ValueError(f'Unsupported system version: {self._v_major}') from err
-
-    @cached_property
     def SATELLITE_CDN_REPOS(self):
         sat_version = ".".join(settings.server.version.release.split('.')[0:2])
         return {

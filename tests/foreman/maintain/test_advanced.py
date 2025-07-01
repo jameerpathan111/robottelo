@@ -17,24 +17,6 @@ import yaml
 
 from robottelo.config import robottelo_tmp_dir, settings
 from robottelo.constants import MAINTAIN_HAMMER_YML
-from robottelo.hosts import get_sat_rhel_version, get_sat_version
-
-sat_x_y_release = f'{get_sat_version().major}.{get_sat_version().minor}'
-
-
-def get_satellite_capsule_repos(
-    x_y_release=sat_x_y_release, product='satellite', os_major_ver=None
-):
-    if os_major_ver is None:
-        os_major_ver = get_sat_rhel_version().major
-    if product == 'capsule':
-        product = 'satellite-capsule'
-    return [
-        f'{product}-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-        f'satellite-maintenance-{x_y_release}-for-rhel-{os_major_ver}-x86_64-rpms',
-        f'rhel-{os_major_ver}-for-x86_64-baseos-rpms',
-        f'rhel-{os_major_ver}-for-x86_64-appstream-rpms',
-    ]
 
 
 def test_positive_advanced_run_service_restart(sat_maintain):
@@ -284,7 +266,7 @@ def test_positive_sync_plan_with_hammer_defaults(request, sat_maintain, module_o
 
 
 @pytest.mark.e2e
-def test_positive_satellite_repositories_setup(sat_maintain):
+def test_positive_satellite_repositories_setup(target_sat):
     """Verify that all required repositories gets enabled.
 
     :id: e32fee2d-2a1f-40ed-9f94-515f75511c5a
@@ -296,20 +278,22 @@ def test_positive_satellite_repositories_setup(sat_maintain):
 
     :expectedresults: Required Satellite repositories for install/upgrade should get enabled
     """
+    sat_maintain = target_sat
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
+    sat_repos = [sat_maintain.SATELLITE_CDN_REPOS.values() + sat_maintain.REPOS.values()]
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
     if float(sat_version) not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in get_satellite_capsule_repos(sat_version):
+        for repo in sat_repos:
             assert repo in result.stdout
 
     # for non-ga versions
     else:
         assert result.status == 1
         assert 'FAIL' in result.stdout
-        for repo in get_satellite_capsule_repos(sat_version):
+        for repo in sat_repos:
             assert repo in result.stdout
 
 
@@ -330,16 +314,17 @@ def test_positive_capsule_repositories_setup(sat_maintain):
     :expectedresults: Required Capsule repositories should get enabled
     """
     sat_version = ".".join(sat_maintain.version.split('.')[0:2])
+    cap_repos = sat_maintain.CAPSULE_CDN_REPOS.values() + sat_maintain.REPOS.values()
     result = sat_maintain.cli.Advanced.run_repositories_setup(options={'version': sat_version})
     if float(sat_version) not in settings.robottelo.sat_non_ga_versions:
         assert result.status == 0
         assert 'FAIL' not in result.stdout
         result = sat_maintain.execute('yum repolist')
-        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
+        for repo in cap_repos:
             assert repo in result.stdout
     # for non-ga versions
     else:
         assert result.status == 1
         assert 'FAIL' in result.stdout
-        for repo in get_satellite_capsule_repos(sat_version, 'capsule'):
+        for repo in cap_repos:
             assert repo in result.stdout
