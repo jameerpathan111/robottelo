@@ -1597,12 +1597,8 @@ class ContentHost(Host, ContentHostMixins):
                 snap=settings.capsule.version.snap,
             )
 
-    def podman_login(self, username=None, password=None, registry=None):
+    def podman_login(self, username, password, registry):
         """Login to a podman registry."""
-        iop_settings = settings.rh_cloud.iop_advisor_engine
-        username = username or iop_settings.username
-        password = password or iop_settings.token
-        registry = registry or iop_settings.registry
         if registry and username and password:
             auth_str = f'{username}:{password}'
             auth_b64 = base64.b64encode(auth_str.encode()).decode()
@@ -1627,17 +1623,17 @@ class ContentHost(Host, ContentHostMixins):
                     f'Error logging in to container registry {registry}: {cmd_result.stdout}'
                 )
         else:
-            logger.error('Podman login skipped: missing registry, username, or token.')
+            raise ContentHostError('Podman login skipped: missing registry, username, or token.')
 
-    def is_podman_logged_in(self, registry=None):
+    def is_podman_logged_in(self, registry):
         """Check if podman is logged into a registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
-        cmd_result = self.execute(f'podman login --get-login {registry}')
-        return cmd_result.status == 0
+        if registry:
+            cmd_result = self.execute(f'podman login --get-login {registry}')
+            return cmd_result.status == 0
+        raise ContentHostError('Please provide a registry to check log in status.')
 
-    def podman_logout(self, registry=None):
+    def podman_logout(self, registry):
         """Logout of a podman registry."""
-        registry = registry or settings.rh_cloud.iop_advisor_engine.registry
         if self.is_podman_logged_in(registry):
             cmd_result = self.execute(f'podman logout {registry}')
             if cmd_result.status != 0:
