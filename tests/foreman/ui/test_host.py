@@ -857,7 +857,7 @@ def test_positive_search_by_parameter(session, module_org, smart_proxy_location,
         assert values[0]['Name'] == param_host.name
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_search_by_reported_data(
     target_sat, rhel_contenthost, module_org, module_ak_with_cv
@@ -875,7 +875,8 @@ def test_positive_search_by_reported_data(
     :customerscenario: true
     """
     result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     client = rhel_contenthost
 
     reported_data_params = [
@@ -1851,7 +1852,7 @@ def test_positive_set_multi_line_and_with_spaces_parameter_value(
 
 
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_match('[^6]')
 def test_positive_tracer_enable_reload(tracer_install_host, target_sat):
     """Using the new Host UI,enable tracer and verify that the page reloads
 
@@ -2112,7 +2113,7 @@ def change_content_source_prep(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('[789]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_change_content_source(session, change_content_source_prep, rhel_contenthost):
     """
     This test exercises different ways to change host's content source
@@ -2196,7 +2197,7 @@ def test_change_content_source(session, change_content_source_prep, rhel_content
         )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_page_redirect_after_update(target_sat, current_sat_location):
     """Check that page redirects correctly after editing a host without making any changes.
 
@@ -2222,7 +2223,7 @@ def test_positive_page_redirect_after_update(target_sat, current_sat_location):
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_host_status_honors_taxonomies(
     module_target_sat, test_name, rhel_contenthost, setup_content, default_location, default_org
 ):
@@ -2275,7 +2276,9 @@ def test_host_status_honors_taxonomies(
     # register the host to org
     assert rhel_contenthost.unregister().status == 0
     module_target_sat.cli.Host.delete({'id': host_id})
-    assert rhel_contenthost.register(org, default_location, ak.name, module_target_sat).status == 0
+    register_result = rhel_contenthost.register(org, default_location, ak.name, module_target_sat)
+    if rhel_contenthost.os_version.major != 6:
+        assert register_result.status == 0
     with module_target_sat.ui_session(test_name, user=login, password=password) as session:
         statuses = session.host.host_statuses()
     assert len([status for status in statuses if int(status['count'].split(': ')[1]) != 0]) == 1

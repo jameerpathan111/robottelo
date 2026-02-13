@@ -487,7 +487,7 @@ def test_end_to_end(
 
 
 @pytest.mark.no_containers
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize('registered_contenthost', [[CUSTOM_REPO_3_URL]], indirect=True)
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 def test_host_content_errata_tab_pagination(
@@ -966,7 +966,7 @@ def test_positive_apply_for_all_hosts(
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_view_cve(session, module_product, module_sca_manifest_org, target_sat):
     """View CVE number(s) in Errata Details page
 
@@ -1089,7 +1089,7 @@ def test_positive_filter_by_environment(
     [[CUSTOM_REPO_URL]],
     indirect=True,
 )
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_content_host_previous_env(
     session,
     module_cv,
@@ -1157,7 +1157,7 @@ def test_positive_content_host_previous_env(
         assert content_host_erratum[0]['Id'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1188,7 +1188,7 @@ def test_positive_check_errata(session, registered_contenthost):
         assert read_errata['Content']['Errata']['table'][0]['Errata'] == CUSTOM_REPO_ERRATA_ID
 
 
-@pytest.mark.rhel_ver_match('[8, 9]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 @pytest.mark.parametrize(
     'registered_contenthost',
     [['Library', CUSTOM_REPO_URL]],
@@ -1428,7 +1428,7 @@ def test_positive_show_count_on_host_pages(session, module_org, registered_conte
             )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],
@@ -1501,7 +1501,7 @@ def test_positive_check_errata_counts_by_type_on_host_details_page(
 @pytest.mark.upgrade
 @pytest.mark.skipif((not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url')
 @pytest.mark.parametrize('setting_update', ['errata_status_installable'], indirect=True)
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'registered_contenthost',
     [[CUSTOM_REPO_URL]],

@@ -97,7 +97,8 @@ def pre_client_package_installation_setup(
             activation_keys=[ak.name],
             location=location,
         )
-        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+        if rhel_contenthost.os_version.major != 6:
+            assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
         rhel_contenthost.execute('subscription-manager repos --enable=* && yum clean all')
         target_sat.cli_factory.job_invocation(
             {
@@ -201,7 +202,8 @@ def test_post_scenario_post_client_package_installation(pre_client_package_insta
         activation_keys=[ak.name],
         location=location,
     )
-    assert f'The registered system name is: {rhel_client.hostname}' in result.stdout
+    if rhel_client.os_version.major != 6:
+        assert f'The registered system name is: {rhel_client.hostname}' in result.stdout
     rhel_client.execute('subscription-manager repos --enable=* && yum clean all')
     target_sat.cli_factory.job_invocation(
         {

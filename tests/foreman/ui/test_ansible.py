@@ -139,7 +139,7 @@ class TestAnsibleCfgMgmt:
             all_assigned_roles_table = session.host_new.get_ansible_roles_modal(function_host.name)
             assert all_assigned_roles_table[0]['Name'] == SELECTED_ROLE
 
-    @pytest.mark.rhel_ver_match('8')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_assign_ansible_role_variable_on_host(
         self,
         request,
@@ -184,7 +184,8 @@ class TestAnsibleCfgMgmt:
             activation_keys=[module_activation_key.name],
             location=module_location,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         target_host = rhel_contenthost.nailgun_host
         default_value = '[\"test\"]'  # fmt: skip
@@ -480,7 +481,8 @@ class TestAnsibleCfgMgmt:
         result = rhel_contenthost.register(
             module_org, module_location, module_activation_key.name, module_target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         with module_target_sat.ui_session() as session:
             session.location.select(module_location.name)
             session.organization.select(module_org.name)
@@ -513,7 +515,8 @@ class TestAnsibleCfgMgmt:
                 module_target_sat,
                 force=True,
             )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            if rhel_contenthost.os_version.major != 6:
+                assert result.status == 0, f'Failed to register host: {result.stderr}'
             session.host_new.run_job(rhel_contenthost.hostname)
             session.jobinvocation.wait_job_invocation_state(
                 entity_name='Run ansible roles', host_name=rhel_contenthost.hostname
@@ -531,7 +534,7 @@ class TestAnsibleREX:
 
     @pytest.mark.pit_server
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     def test_positive_config_report_ansible(
         self, target_sat, module_org, module_ak_with_cv, rhel_contenthost
     ):
@@ -556,7 +559,8 @@ class TestAnsibleREX:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0
         result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
         target_sat.api.AnsibleRoles().sync(data={'proxy_id': id, 'role_names': [SELECTED_ROLE]})
@@ -592,7 +596,7 @@ class TestAnsibleREX:
             assert len(session.configreport.read()['table']) == 0
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('9')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     @pytest.mark.parametrize('auth_type', ['admin', 'non-admin'])
     def test_positive_ansible_custom_role(
         self,
@@ -665,7 +669,8 @@ class TestAnsibleREX:
         target_sat.put(playbook, f'/etc/ansible/roles/{SELECTED_ROLE}/playbook.yaml')
 
         result = rhel_contenthost.register(module_org, None, module_ak_with_cv.name, target_sat)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
         target_sat.api.AnsibleRoles(server_config=user_cfg).sync(

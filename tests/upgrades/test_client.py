@@ -42,7 +42,7 @@ class TestScenarioUpgradeOldClientAndPackageInstallation:
     """
 
     @pytest.mark.pre_upgrade
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_pre_scenario_pre_client_package_installation(
         self,
         client_for_upgrade,
@@ -130,7 +130,7 @@ class TestScenarioUpgradeNewClientAndPackageInstallation:
     """
 
     @pytest.mark.post_upgrade
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_post_scenario_post_client_package_installation(
         self,
         module_target_sat,

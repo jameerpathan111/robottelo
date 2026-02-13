@@ -90,7 +90,7 @@ def module_rhel8_repo(module_sca_manifest_org, module_target_sat):
     )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.no_containers
 def test_positive_parse_package_name_url(
     session, module_target_sat, module_sca_manifest_org, module_rhel8_repo, rhel_contenthost

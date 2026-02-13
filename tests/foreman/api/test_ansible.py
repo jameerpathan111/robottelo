@@ -334,7 +334,7 @@ class TestAnsibleREX:
     @pytest.mark.e2e
     @pytest.mark.pit_client
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.rhel_ver_match('[^6]')
     def test_positive_ansible_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
@@ -357,13 +357,16 @@ class TestAnsibleREX:
         :BZ: 2164400
         """
         SELECTED_ROLE = 'RedHatInsights.insights-client'
-        if rhel_contenthost.os_version.major <= 7:
-            rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
+        rhelver = rhel_contenthost.os_version.major
+        if rhelver <= 7:
+            rhel_contenthost.create_custom_repos(**settings.repos[f'rhel{rhelver}_os'])
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0
         result = rhel_contenthost.register(
             module_org, module_location, module_ak_with_synced_repo.name, target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhelver != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
         target_sat.api.AnsibleRoles().sync(
@@ -437,7 +440,9 @@ class TestAnsibleREX:
             result = host.register(
                 module_org, module_location, module_ak_with_synced_repo.name, target_sat
             )
-            assert result.status == 0, f'Failed to register host: {result.stderr}'
+            if host.os_version.major != 6:
+                assert result.status == 0, f'Failed to register host: {result.stderr}'
+            assert host.subscribed
             proxy_id = target_sat.nailgun_smart_proxy.id
             target_host = host.nailgun_host
             target_sat.api.AnsibleRoles().sync(
@@ -479,7 +484,7 @@ class TestAnsibleREX:
         assert result.status_label == 'failed'
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     def test_positive_ansible_localhost_job_on_host(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
@@ -512,8 +517,9 @@ class TestAnsibleREX:
         result = rhel_contenthost.register(
             module_org, module_location, module_ak_with_synced_repo.name, target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         template_id = (
             target_sat.api.JobTemplate()
             .search(query={'search': 'name="Ansible - Run playbook"'})[0]
@@ -541,7 +547,7 @@ class TestAnsibleREX:
         assert [i['output'] for i in result if i['output'] == 'Exit status: 0']
 
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_list('8')
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_negative_ansible_job_timeout_to_kill(
         self, target_sat, module_org, module_location, module_ak_with_synced_repo, rhel_contenthost
     ):
@@ -575,8 +581,9 @@ class TestAnsibleREX:
         result = rhel_contenthost.register(
             module_org, module_location, module_ak_with_synced_repo.name, target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
-
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         template_id = (
             target_sat.api.JobTemplate()
             .search(query={'search': 'name="Ansible - Run playbook"'})[0]
@@ -659,7 +666,9 @@ class TestAnsibleREX:
         result = rhel_contenthost.register(
             module_org, module_location, module_ak_with_synced_repo.name, target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
+        assert rhel_contenthost.subscribed
         assert rhel_contenthost.execute('useradd testing').status == 0
         pwd = rhel_contenthost.execute(
             f'echo {settings.server.ssh_password} | passwd testing --stdin'

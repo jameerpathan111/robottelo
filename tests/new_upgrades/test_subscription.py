@@ -175,7 +175,7 @@ def subscription_auto_attach_setup(
 
 
 @pytest.mark.subscription_upgrades
-@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 @pytest.mark.no_containers
 @pytest.mark.manifester
 def test_subscription_scenario_auto_attach(subscription_auto_attach_setup):

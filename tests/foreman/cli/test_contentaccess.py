@@ -97,7 +97,7 @@ def vm(
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.client_release
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_list_installable_updates(vm, module_target_sat):
     """Ensure packages applicability is functioning properly.
 
@@ -140,7 +140,7 @@ def test_positive_list_installable_updates(vm, module_target_sat):
 @pytest.mark.pit_client
 @pytest.mark.pit_server
 @pytest.mark.client_release
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_erratum_installable(vm, module_target_sat):
     """Ensure erratum applicability is showing properly, without attaching
     any subscription.
@@ -194,7 +194,7 @@ def test_positive_rct_shows_sca_enabled(module_sca_manifest, module_target_sat):
     assert 'Content Access Mode: Simple Content Access' in result.stdout
 
 
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_negative_unregister_and_pull_content(vm):
     """Attempt to retrieve content after host has been unregistered from Satellite
 

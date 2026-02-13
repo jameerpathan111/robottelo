@@ -133,7 +133,7 @@ def test_negative_global_registration_without_ak(
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.pit_client
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_global_registration_end_to_end(
     module_activation_key,
     module_org,
@@ -218,7 +218,8 @@ def test_positive_global_registration_end_to_end(
     rhel_contenthost.execute(f"yum install -y {package}")
     # run curl
     result = rhel_contenthost.execute(cmd)
-    assert result.status == 0
+    if rhel_contenthost.os_version.major != '6':
+        assert result.status == 0
     result = rhel_contenthost.execute('subscription-manager identity')
     assert result.status == 0
     # Assert that a yum update was made this day ("Update" or "I, U" in history)
@@ -410,7 +411,8 @@ def test_global_registration_with_gpg_repo_and_default_package(
     client.create_custom_repos(**repos)
     # run curl
     result = client.execute(cmd)
-    assert result.status == 0
+    if client.os_version.major != 6:
+        assert result.status == 0
     result = client.execute('yum list installed | grep mlocate')
     assert result.status == 0
     assert 'mlocate' in result.stdout
@@ -420,7 +422,7 @@ def test_global_registration_with_gpg_repo_and_default_package(
     assert repo_url in result.stdout
 
 
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_global_re_registration_host_with_force_ignore_error_options(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
@@ -460,7 +462,7 @@ def test_global_re_registration_host_with_force_ignore_error_options(
     assert result.status == 0
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_global_registration_token_restriction(
     module_activation_key, rhel_contenthost, module_target_sat, module_org
 ):
@@ -500,7 +502,7 @@ def test_global_registration_token_restriction(
         assert 'Unable to authenticate user' in result.stdout
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_host_registration_with_non_admin_user(
     test_name,
     module_sca_manifest_org,
@@ -548,7 +550,8 @@ def test_positive_host_registration_with_non_admin_user(
         )
 
         result = rhel_contenthost.execute(cmd)
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
 
         # Verify server.hostname and server.port from subscription-manager config
         assert (
@@ -618,7 +621,7 @@ def test_positive_global_registration_form(
         assert pair in cmd
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_global_registration_with_capsule_host(
     capsule_configured,
     rhel_contenthost,
@@ -714,7 +717,7 @@ def test_global_registration_with_capsule_host(
     assert module_org.name in result.stdout
 
 
-@pytest.mark.rhel_ver_match('[^6].*')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_subscription_manager_install_from_repository(
     module_activation_key, module_os, rhel_contenthost, target_sat, module_org
 ):

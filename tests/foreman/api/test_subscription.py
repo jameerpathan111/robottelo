@@ -225,7 +225,8 @@ def test_sca_end_to_end(
         organization=module_sca_manifest_org,
         activation_keys=[module_ak.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
     # Check to see if Organization is in SCA Mode
     assert (
@@ -265,7 +266,7 @@ def test_sca_end_to_end(
     assert 'Complete!' in package.stdout or 'already installed' in package.stdout
 
 
-@pytest.mark.rhel_ver_match('7')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_candlepin_events_processed_by_stomp(
     function_org, target_sat, function_sca_manifest
 ):
@@ -356,7 +357,8 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
         organization=module_sca_manifest_org,
         activation_keys=[ak.name],
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
     rhel_contenthost.unregister()
     # syncing content with the content host unregistered should invalidate
@@ -379,7 +381,8 @@ def test_positive_expired_SCA_cert_handling(module_sca_manifest_org, rhel_conten
         activation_keys=[ak.name],
         force=True,
     )
-    assert result.status == 0, f'Failed to register host: {result.stderr}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register host: {result.stderr}'
     assert rhel_contenthost.subscribed
 
 

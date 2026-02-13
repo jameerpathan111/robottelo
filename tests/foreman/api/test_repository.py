@@ -676,7 +676,7 @@ class TestRepository:
         assert repo.read().content_counts['srpm'] == 0
 
     @pytest.mark.upgrade
-    @pytest.mark.skip('Uses deprecated SRPM repository')
+    # @pytest.mark.skip('Uses deprecated SRPM repository')
     @pytest.mark.skipif(
         (not settings.robottelo.REPOS_HOSTING_URL), reason='Missing repos_hosting_url'
     )

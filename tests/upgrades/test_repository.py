@@ -381,7 +381,7 @@ class TestSimpleContentAccessOnly:
     satellite with simple content access mode only.
     """
 
-    @pytest.mark.rhel_ver_list([7, 8, 9])
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_simple_content_access_only(

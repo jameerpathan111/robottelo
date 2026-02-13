@@ -80,7 +80,7 @@ class TestSubscriptionAutoAttach:
     upgrade.
     """
 
-    @pytest.mark.rhel_ver_list([7, 8, 9])
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_subscription_scenario_auto_attach(

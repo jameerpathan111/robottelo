@@ -20,6 +20,7 @@ from inflection import camelize
 import pytest
 from wait_for import wait_for
 
+from robottelo.config import settings
 from robottelo.utils.datafactory import (
     gen_string,
     valid_hostgroups_list_short,
@@ -94,7 +95,7 @@ def test_positive_hostgroups_full_nested_names(
         assert name in hostgroups
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_run_default_job_template(
     session,
     target_sat,
@@ -150,7 +151,7 @@ def test_positive_run_default_job_template(
         assert job_name in [job['Name'] for job in success_jobs]
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_rex_through_host_details(session, target_sat, rex_contenthost, module_org):
     """Run remote execution using the new host details page
 
@@ -188,7 +189,7 @@ def test_rex_through_host_details(session, target_sat, rex_contenthost, module_o
         assert recent_jobs['recent_jobs']['finished']['table'][0]['column2'] == "succeeded"
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 @pytest.mark.parametrize(
     'ui_user', [{'admin': True}, {'admin': False}], indirect=True, ids=['adminuser', 'nonadminuser']
 )
@@ -251,7 +252,7 @@ def test_positive_run_custom_job_template(
 
 
 @pytest.mark.upgrade
-@pytest.mark.rhel_ver_list([8])
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_run_job_template_multiple_hosts(
     session, module_org, target_sat, rex_contenthosts
 ):
@@ -298,7 +299,7 @@ def test_positive_run_job_template_multiple_hosts(
         )
 
 
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_run_scheduled_job_template_by_ip(session, module_org, rex_contenthost):
     """Schedule a job to be ran against a host by ip
 

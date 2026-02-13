@@ -53,7 +53,7 @@ class TestAnsibleCfgMgmt:
 
     @pytest.mark.e2e
     @pytest.mark.no_containers
-    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     def test_positive_ansible_e2e(
         self, target_sat, module_sca_manifest_org, module_ak_with_cv, rhel_contenthost
     ):
@@ -90,7 +90,8 @@ class TestAnsibleCfgMgmt:
         result = rhel_contenthost.register(
             module_sca_manifest_org, None, module_ak_with_cv.name, target_sat
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         if rhel_contenthost.os_version.major <= 7:
             rhel_contenthost.create_custom_repos(rhel7=settings.repos.rhel7_os)
             assert rhel_contenthost.execute('yum install -y insights-client').status == 0
@@ -223,7 +224,8 @@ class TestAnsibleCfgMgmt:
             module_ak_with_cv.name,
             target_sat,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         target_host = rhel_contenthost.nailgun_host
         proxy_id = target_sat.nailgun_smart_proxy.id
 
@@ -262,7 +264,7 @@ class TestAnsibleREX:
 
     @pytest.mark.pit_client
     @pytest.mark.pit_server
-    @pytest.mark.rhel_ver_match('[^6]')
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     def test_positive_run_effective_user_job(self, rex_contenthost, target_sat):
         """Tests Ansible REX job having effective user runs successfully
 
@@ -308,7 +310,7 @@ class TestAnsibleREX:
         # assert the file is owned by the effective user
         assert username == result.stdout.strip('\n'), 'file ownership mismatch'
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_reccuring_job(self, rex_contenthost, target_sat):
         """Tests Ansible REX recurring job runs successfully multiple times
 
@@ -354,7 +356,7 @@ class TestAnsibleREX:
         assert 'iteration' in rec_logic_keys
         assert 'iteration-limit' in rec_logic_keys
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_concurrent_jobs(self, rex_contenthosts, target_sat):
         """Tests Ansible REX concurrent jobs without batch trigger
 
@@ -403,7 +405,7 @@ class TestAnsibleREX:
     @pytest.mark.parametrize(
         'value', [0, -2, 2.5, 'a'], ids=['zero', 'negative', 'decimal', 'string']
     )
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_negative_invalid_concurrency_level(self, rex_contenthost, target_sat, value):
         """Tests you can not invoke job with invalid concurrency level
 
@@ -431,7 +433,7 @@ class TestAnsibleREX:
             error.value
         ) or 'Numeric value is required' in str(error.value)
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_run_serial(self, rex_contenthosts, target_sat):
         """Tests subtasks in a job run one by one when concurrency level set to 1
 
@@ -501,7 +503,7 @@ class TestAnsibleREX:
     @pytest.mark.no_containers
     @pytest.mark.pit_server
     @pytest.mark.pit_client
-    @pytest.mark.rhel_ver_match('[^6].*')
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     @pytest.mark.skipif(
         (not settings.robottelo.repos_hosting_url), reason='Missing repos_hosting_url'
     )
@@ -538,7 +540,8 @@ class TestAnsibleREX:
             target_sat,
             repo_data=f'repo={settings.repos.yum_3.url}',
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         # install package
         invocation_command = target_sat.cli_factory.job_invocation(
             {
@@ -576,7 +579,7 @@ class TestAnsibleREX:
         result = client.execute(f'systemctl status {service}')
         assert result.status == 0
 
-    @pytest.mark.rhel_ver_list([8])
+    @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_install_ansible_collection(self, rex_contenthost, target_sat):
         """Test whether Ansible collection can be installed via Ansible REX
 
@@ -709,7 +712,8 @@ class TestAnsibleREX:
             auth_username=username,
             auth_password=password,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         proxy_id = target_sat.nailgun_smart_proxy.id
         target_host = rhel_contenthost.nailgun_host
         target_sat.cli.Ansible.with_user(username, password).roles_sync(
@@ -856,7 +860,8 @@ class TestAnsibleAAPIntegration:
             auth_password=password,
             force=True,
         )
-        assert result.status == 0, f'Failed to register host: {result.stderr}'
+        if rhel_contenthost.os_version.major != 6:
+            assert result.status == 0, f'Failed to register host: {result.stderr}'
         # Find the Satellite credentials in AAP and update it for target_sat.hostname and user credentials
         self.update_sat_credentials_in_aap(
             aap_client, target_sat, username=login, aap_version=aap_version

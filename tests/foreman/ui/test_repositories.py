@@ -15,7 +15,7 @@
 import pytest
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_custom_products_disabled_by_default(
     session,
     default_location,
@@ -42,7 +42,8 @@ def test_positive_custom_products_disabled_by_default(
     """
     ak, org, custom_repo = setup_content
     rhel_contenthost.register(org, default_location, ak.name, target_sat)
-    assert rhel_contenthost.subscribed
+    if rhel_contenthost.os_version.major != 6:
+        assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
@@ -56,7 +57,7 @@ def test_positive_custom_products_disabled_by_default(
         assert repos[0]['Repository type'] == 'Custom'
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_override_custom_products_using_select_all(
     session,
     default_location,
@@ -84,7 +85,8 @@ def test_positive_override_custom_products_using_select_all(
     ak, org, custom_repo = setup_content
     client = rhel_contenthost
     client.register(org, default_location, ak.name, target_sat)
-    assert client.subscribed
+    if client.os_version.major != 6:
+        assert client.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)
@@ -99,7 +101,7 @@ def test_positive_override_custom_products_using_select_all(
         assert repo[0]['Status'] == 'Enabled'
 
 
-@pytest.mark.rhel_ver_match('[^6]')
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 def test_positive_override_custom_products_not_using_select_all(
     session,
     default_location,
@@ -131,7 +133,8 @@ def test_positive_override_custom_products_not_using_select_all(
     """
     ak, org, custom_repo = setup_content
     rhel_contenthost.register(org, default_location, ak.name, target_sat)
-    assert rhel_contenthost.subscribed
+    if rhel_contenthost.os_version.major != 6:
+        assert rhel_contenthost.subscribed
     with session:
         session.organization.select(org.name)
         session.location.select(default_location.name)

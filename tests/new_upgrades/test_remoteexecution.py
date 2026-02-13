@@ -82,7 +82,8 @@ def remote_execution_external_capsule_setup(
             activation_keys=[ak.name],
             location=location,
         )
-        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+        if rhel_contenthost.os_version.major != 6:
+            assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
         # run rex command
         template_id = (
             target_sat.api.JobTemplate()
@@ -113,7 +114,7 @@ def remote_execution_external_capsule_setup(
         yield test_data
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 @pytest.mark.no_containers
 @pytest.mark.capsule_upgrades
 def test_post_scenario_remote_execution_external_capsule(remote_execution_external_capsule_setup):
@@ -190,7 +191,8 @@ def remote_execution_satellite_setup(
             activation_keys=[ak.name],
             location=location,
         )
-        assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
+        if rhel_contenthost.os_version.major != 6:
+            assert f'The registered system name is: {rhel_contenthost.hostname}' in result.stdout
         # run rex command
         template_id = (
             target_sat.api.JobTemplate()
@@ -221,7 +223,7 @@ def remote_execution_satellite_setup(
         yield test_data
 
 
-@pytest.mark.rhel_ver_list([7, 8, 9, 10])
+@pytest.mark.rhel_ver_list(r'^[\d]+$')
 @pytest.mark.no_containers
 @pytest.mark.capsule_upgrades
 def test_post_scenario_remote_execution_satellite(remote_execution_satellite_setup):

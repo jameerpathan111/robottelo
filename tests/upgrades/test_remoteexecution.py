@@ -29,7 +29,7 @@ class TestScenarioREXCapsule:
         4. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([7, 8, 9])
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_external_capsule(
@@ -151,7 +151,7 @@ class TestScenarioREXSatellite:
         7. Check if REX job still getting success.
     """
 
-    @pytest.mark.rhel_ver_list([7, 8, 9])
+    @pytest.mark.rhel_ver_list(r'^[\d]+$')
     @pytest.mark.no_containers
     @pytest.mark.pre_upgrade
     def test_pre_scenario_remote_execution_satellite(

@@ -215,7 +215,8 @@ def test_positive_install_content_with_http_proxy(
         target=module_target_sat,
         loc=None,
     )
-    assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
+    if rhel_contenthost.os_version.major != 6:
+        assert result.status == 0, f'Failed to register the host: {rhel_contenthost.hostname}'
     assert rhel_contenthost.subscribed
 
     result = rhel_contenthost.execute(f'yum install -y {pkg_name}')

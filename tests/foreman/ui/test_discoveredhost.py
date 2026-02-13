@@ -50,7 +50,7 @@ def _is_host_reachable(host, retries=12, iteration_sleep=5, expect_reachable=Tru
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_provision_pxe_host(
     request,
     module_location,
@@ -130,7 +130,7 @@ def test_positive_provision_pxe_host(
 @pytest.mark.upgrade
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('8')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_custom_provision_pxe_host(
     request,
     module_location,
@@ -287,7 +287,7 @@ def test_positive_update_name(
 @pytest.mark.on_premises_provisioning
 @pytest.mark.parametrize('module_provisioning_sat', ['discovery'], indirect=True)
 @pytest.mark.parametrize('pxe_loader', ['bios', 'uefi'], indirect=True)
-@pytest.mark.rhel_ver_match('9')
+@pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 def test_positive_auto_provision_host_with_rule(
     request,
     session,
