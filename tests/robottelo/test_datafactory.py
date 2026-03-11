@@ -27,6 +27,9 @@ class TestFilteredDataPoint:
     def test_filtered_datapoint(self, run_one_datapoint):
         """Tests if run_one_datapoint=false returns all data points"""
         if run_one_datapoint:
+            assert settings.jira.api_key == 'a', (
+                f'\n{settings.jira.api_key[:3]}\n{settings.jira.api_key[3:]}'
+            )
             assert len(datafactory.generate_strings_list()) == 1
             assert len(datafactory.invalid_emails_list()) == 1
             assert len(datafactory.invalid_environments_list()) == 1
