@@ -7,8 +7,6 @@ on:
 
 env:
     PYCURL_SSL_LIBRARY: openssl
-    ROBOTTELO_JIRA__API_KEY: ${{ secrets.JIRA_KEY }}
-    ROBOTTELO_JIRA__EMAIL: ${{ secrets.JIRA_EMAIL }}
 
 jobs:
   codechecks:
@@ -42,13 +40,11 @@ jobs:
             uv-${{ runner.os }}
 
       - name: Restore Jira Status Cache
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           # If the path is changed in the validator or jira.yaml.template, it should be changed here too
           path: jira_status_cache.json
           key: jira-status-cache-global
-          restore-keys: |
-            jira-status-cache-global
 
       - name: Install Dependencies
         run: |
@@ -97,11 +93,3 @@ jobs:
       - name: Analysis (git diff)
         if: failure()
         run: git diff
-
-      - name: Save Jira Status Cache
-        if: always()
-        uses: actions/cache@v5
-        with:
-          # If the path is changed in the validator or jira.yaml.template, it should be changed here too
-          path: jira_status_cache.json
-          key: jira-status-cache-global
