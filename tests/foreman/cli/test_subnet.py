@@ -26,6 +26,9 @@ from robottelo.utils.datafactory import (
     valid_data_list,
 )
 
+# Subnets encode IPv4/IPv6 network_type; required for IPv6 overlay coverage.
+pytestmark = pytest.mark.network_sensitive
+
 
 @filtered_datapoint
 def valid_addr_pools():

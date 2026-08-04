@@ -32,6 +32,8 @@ from robottelo.exceptions import CLIFactoryError
 from robottelo.utils.datafactory import gen_string
 from robottelo.utils.installer import InstallerCommand
 
+# Capsule ↔ Satellite content paths; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
 
 @pytest.fixture(scope='module')
 def module_synced_content(

@@ -23,6 +23,9 @@ from robottelo.constants import REPO_TYPE, REPOS
 from robottelo.exceptions import ProxyHostError
 from robottelo.utils.issue_handlers import is_open
 
+# IPv6 installs require an HTTP proxy (Satellite 6.19 planning docs).
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.fixture
 def function_spec_char_user(target_sat, session_auth_proxy):

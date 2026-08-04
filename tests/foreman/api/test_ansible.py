@@ -326,6 +326,7 @@ class TestAnsibleCfgMgmt:
         assert len(user_facts['results'][rex_contenthost.hostname]) > 0
 
 
+@pytest.mark.network_sensitive
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
 

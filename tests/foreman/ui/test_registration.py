@@ -27,6 +27,9 @@ from robottelo.constants import (
 )
 from robottelo.utils.issue_handlers import is_open
 
+# Client ↔ Satellite path; curated IPv6 overlay (not generic content-host CRUD).
+pytestmark = pytest.mark.network_sensitive
+
 
 def test_positive_verify_default_values_for_global_registration(
     module_target_sat,

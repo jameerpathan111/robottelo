@@ -554,6 +554,7 @@ class TestAnsibleCfgMgmt:
             assert f'Installed: {package_name}_bash' in notice_log['permission_denied']
 
 
+@pytest.mark.network_sensitive
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
 

@@ -21,6 +21,7 @@ from robottelo.config import user_nailgun_config
 
 @pytest.mark.e2e
 @pytest.mark.upgrade
+@pytest.mark.network_sensitive
 def test_positive_update_capsule(request, pytestconfig, target_sat, module_capsule_configured):
     """Update various capsule properties
 

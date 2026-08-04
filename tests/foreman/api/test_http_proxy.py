@@ -22,6 +22,9 @@ from robottelo.config import settings
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 from robottelo.utils.issue_handlers import is_open
 
+# IPv6 installs require an HTTP proxy (Satellite 6.19 planning docs).
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.mark.e2e
 @pytest.mark.upgrade

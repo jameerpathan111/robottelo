@@ -17,6 +17,9 @@ import pytest
 from robottelo.config import settings
 from robottelo.utils import ohsnap
 
+# REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 def test_positive_find_capsule_upgrade_playbook(target_sat):
     """Check that Capsule Upgrade playbook is present on Satellite

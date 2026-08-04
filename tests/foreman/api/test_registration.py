@@ -25,6 +25,9 @@ from robottelo.config import (
     user_nailgun_config,
 )
 
+# Client ↔ Satellite path; curated IPv6 overlay (not generic content-host CRUD).
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.mark.e2e
 @pytest.mark.pit_client

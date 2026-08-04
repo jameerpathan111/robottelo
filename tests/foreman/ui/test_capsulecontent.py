@@ -20,6 +20,9 @@ from robottelo.config import settings
 from robottelo.constants import DEFAULT_CV, REPOS
 from robottelo.constants.repos import ANSIBLE_GALAXY, CUSTOM_FILE_REPO
 
+# Capsule ↔ Satellite content paths; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.fixture(scope='module', autouse=True)
 def capsule_default_org(module_target_sat, module_capsule_configured, default_org):

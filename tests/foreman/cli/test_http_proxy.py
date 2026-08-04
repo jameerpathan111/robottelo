@@ -19,6 +19,9 @@ from robottelo.config import settings
 from robottelo.constants import FAKE_0_YUM_REPO_PACKAGES_COUNT
 from robottelo.exceptions import CLIReturnCodeError
 
+# IPv6 installs require an HTTP proxy (Satellite 6.19 planning docs).
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.mark.upgrade
 def test_positive_create_update_delete(module_org, module_location, target_sat):

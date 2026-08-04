@@ -17,6 +17,9 @@ import pytest
 
 from robottelo.utils.datafactory import gen_string
 
+# Subnets encode IPv4/IPv6 network_type; required for IPv6 overlay coverage.
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.fixture(scope='module')
 def module_dom(module_target_sat, module_org, module_location):

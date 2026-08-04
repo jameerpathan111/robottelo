@@ -27,6 +27,9 @@ from robottelo.utils.datafactory import (
     valid_hostgroups_list_short,
 )
 
+# REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
+pytestmark = pytest.mark.network_sensitive
+
 
 def test_positive_hostgroups_full_nested_names(
     module_org,

@@ -29,6 +29,9 @@ from robottelo.utils.datafactory import (
     parametrized,
 )
 
+# Subnets encode IPv4/IPv6 network_type; required for IPv6 overlay coverage.
+pytestmark = pytest.mark.network_sensitive
+
 
 def test_positive_create_with_parameter(target_sat):
     """Subnet can be created along with parameters

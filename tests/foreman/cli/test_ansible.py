@@ -255,6 +255,7 @@ class TestAnsibleCfgMgmt:
 
 
 @pytest.mark.upgrade
+@pytest.mark.network_sensitive
 class TestAnsibleREX:
     """Test class for remote execution via Ansible
 
@@ -904,6 +905,7 @@ class TestAnsibleAAPIntegration:
         ).json()
         assert rhel_contenthost.hostname in [host['name'] for host in hosts_list['results']]
 
+    @pytest.mark.network_sensitive
     @pytest.mark.on_premises_provisioning
     @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
     def test_positive_ansible_provisioning_callback(

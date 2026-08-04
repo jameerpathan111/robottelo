@@ -25,6 +25,9 @@ from robottelo.constants import CLIENT_PORT
 from robottelo.exceptions import CLIReturnCodeError
 from robottelo.utils.issue_handlers import is_open
 
+# Client ↔ Satellite path; curated IPv6 overlay (not generic content-host CRUD).
+pytestmark = pytest.mark.network_sensitive
+
 
 @pytest.mark.e2e
 @pytest.mark.no_containers
