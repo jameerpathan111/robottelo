@@ -35,6 +35,7 @@ from robottelo.utils.installer import InstallerCommand
 # Capsule ↔ Satellite content paths; curated IPv6 overlay.
 pytestmark = pytest.mark.network_sensitive
 
+
 @pytest.fixture(scope='module')
 def module_synced_content(
     request,
