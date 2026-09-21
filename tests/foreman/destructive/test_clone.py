@@ -19,11 +19,12 @@ from robottelo.config import settings
 from robottelo.hosts import Satellite, get_sat_rhel_version
 
 SSH_PASS = settings.server.ssh_password
-pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
+pytestmark = [pytest.mark.foreman_installer]
 
 
 @pytest.mark.pit_server
 @pytest.mark.e2e
+@pytest.mark.destructive
 @pytest.mark.parametrize(
     "sat_ready_rhel",
     [8, 9] if get_sat_rhel_version().major < 9 else [9],

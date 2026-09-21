@@ -28,7 +28,6 @@ from robottelo.utils.installer import InstallerCommand
 CAPSULE_TARGET_VERSION = f'6.{get_sat_version().minor}.z'
 
 pytestmark = [
-    pytest.mark.destructive,
     # REX connect_by_ip / prefer_ipv6; curated IPv6 overlay.
     pytest.mark.network_sensitive,
 ]
@@ -204,6 +203,7 @@ def copy_host_CA(host, satellite, host_path, satellite_path):
     satellite.put(host_ca_file_local, satellite_path)
 
 
+@pytest.mark.destructive
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
@@ -235,6 +235,7 @@ def test_positive_ssh_ca_sat_only(ca_sat, rhel_contenthost, function_org):
     assert check.status != 0
 
 
+@pytest.mark.destructive
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
@@ -274,6 +275,7 @@ def test_negative_ssh_ca_sat_wrong_cert(ca_sat, rhel_contenthost, function_org):
     assert check.status != 0
 
 
+@pytest.mark.destructive
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_positive_ssh_ca_host_only(
@@ -306,6 +308,7 @@ def test_positive_ssh_ca_host_only(
     assert check.status == 0
 
 
+@pytest.mark.destructive
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
 def test_negative_ssh_ca_host_wrong_cert(
@@ -339,6 +342,7 @@ def test_negative_ssh_ca_host_wrong_cert(
     assert check.status != 0
 
 
+@pytest.mark.destructive
 @pytest.mark.e2e
 @pytest.mark.no_containers
 @pytest.mark.rhel_ver_match([settings.content_host.default_rhel_version])
@@ -418,6 +422,7 @@ def test_positive_ssh_ca_sat_and_host_ssh_ansible_cockpit(
     assert log_count(sat, host) == saved_count + 1
 
 
+@pytest.mark.destructive
 class TestCockpit:
     """Tests for cockpit plugin"""
 

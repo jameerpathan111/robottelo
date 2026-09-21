@@ -1,4 +1,4 @@
-"""Capsule-Content related tests, which require destructive Satellite
+"""Capsule-Content related tests that need a blank Capsule (not a fresh Satellite).
 
 :Requirement: Capsule-Content
 
@@ -19,7 +19,7 @@ import pytest
 from robottelo import constants
 from robottelo.config import settings
 
-pytestmark = [pytest.mark.destructive]
+pytestmark = [pytest.mark.run_in_one_thread]
 
 
 @pytest.mark.skip_if_not_set('capsule')

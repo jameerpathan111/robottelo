@@ -12,10 +12,6 @@
 
 """
 
-import pytest
-
-pytestmark = pytest.mark.destructive
-
 
 def test_positive_katello_reimport(target_sat):
     """Close loop bug for running katello:reimport.  Making sure

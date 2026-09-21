@@ -20,8 +20,6 @@ import pytest
 
 from robottelo import constants
 
-pytestmark = pytest.mark.destructive
-
 
 @pytest.fixture(scope='module')
 def module_big_repos(module_target_sat, module_sca_manifest_org):

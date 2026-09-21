@@ -17,8 +17,6 @@ import pytest
 
 from robottelo import constants
 
-pytestmark = pytest.mark.destructive
-
 
 @pytest.mark.run_in_one_thread
 def test_positive_reboot_recover_sync(target_sat, function_sca_manifest_org):

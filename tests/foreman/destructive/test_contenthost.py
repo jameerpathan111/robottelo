@@ -18,8 +18,6 @@ from robottelo.config import settings
 from robottelo.constants import FAKE_0_CUSTOM_PACKAGE, FAKE_1_CUSTOM_PACKAGE
 from robottelo.enums import InstallMethod
 
-pytestmark = pytest.mark.destructive
-
 
 @pytest.mark.rhel_ver_list([settings.content_host.default_rhel_version])
 @pytest.mark.run_in_one_thread

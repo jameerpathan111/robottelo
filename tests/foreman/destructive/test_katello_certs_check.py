@@ -16,9 +16,10 @@ import re
 
 import pytest
 
-pytestmark = [pytest.mark.destructive, pytest.mark.foreman_installer]
+pytestmark = [pytest.mark.foreman_installer]
 
 
+@pytest.mark.destructive
 def test_positive_update_katello_certs(cert_setup_destructive_teardown):
     """Update certificates on a currently running satellite instance.
 
@@ -72,6 +73,7 @@ def test_positive_update_katello_certs(cert_setup_destructive_teardown):
         assert result.status == 0, 'Not all services are running'
 
 
+@pytest.mark.destructive
 def test_regeneration_ssl_build_certs(target_sat):
     """delete the ssl-build folder and cross check that ssl-build folder is
     recovered/regenerated after running the installer
@@ -106,6 +108,7 @@ def test_regeneration_ssl_build_certs(target_sat):
     assert result.status == 0, 'Not all services are running'
 
 
+@pytest.mark.destructive
 def test_positive_generate_capsule_certs_using_absolute_path(cert_setup_destructive_teardown):
     """Create Capsule certs using absolute paths.
 
@@ -157,6 +160,7 @@ def test_positive_generate_capsule_certs_using_absolute_path(cert_setup_destruct
 
 
 @pytest.mark.upgrade
+@pytest.mark.destructive
 def test_positive_generate_capsule_certs_using_relative_path(cert_setup_destructive_teardown):
     """Create Capsule certs using relative paths.
 

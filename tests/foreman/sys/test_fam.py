@@ -325,7 +325,6 @@ def test_positive_run_modules_and_roles(module_target_sat, setup_fam, ansible_mo
     common_test_positive_run_modules_and_roles(module_target_sat, ansible_module)
 
 
-@pytest.mark.destructive
 @pytest.mark.parametrize('ansible_module', FAM_IDM_TEST_PLAYBOOKS)
 def test_positive_run_modules_and_roles_kerberos_auth(idm_sat, setup_fam_with_idm, ansible_module):
     """Run limited set of modules and roles on a Satellite with Kerberos authentication

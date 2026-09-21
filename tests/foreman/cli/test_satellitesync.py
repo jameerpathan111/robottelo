@@ -3250,7 +3250,7 @@ class TestExportImport:
         )
 
     @pytest.mark.pqc
-    @pytest.mark.destructive
+    @pytest.mark.run_in_one_thread
     @pytest.mark.rhel_ver_match('N-0')
     @pytest.mark.no_containers
     @pytest.mark.parametrize('export_format', ['importable', 'syncable'])
@@ -3267,8 +3267,9 @@ class TestExportImport:
         packages, then consume content from the import Satellite and verify the
         V6 ML-DSA-87+Ed448 signatures are intact end-to-end.
 
-        Marked destructive to get a fresh Satellite for the export side since
-        immediate sync of RHEL BaseOS would exhaust disk on a shared target_sat.
+        Uses run_in_one_thread for isolation while syncing large BaseOS content;
+        prefer a disk-capable Satellite over marking this destructive (no Sat
+        mutation that requires satellite_factory redeploy).
 
         :id: 17640f0e-0d7c-46de-aee4-a05e73a04d3a
 

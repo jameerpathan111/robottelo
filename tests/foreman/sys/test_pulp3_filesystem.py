@@ -136,7 +136,6 @@ def test_pulp_status(target_sat):
     )
 
 
-@pytest.mark.destructive
 def test_content_validation_on_download(request, target_sat, function_org, function_product):
     """Test content validation on download with corrupted repository.
 

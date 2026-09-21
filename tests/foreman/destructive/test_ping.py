@@ -17,7 +17,7 @@ import pytest
 from robottelo.config import settings
 from robottelo.enums import InstallMethod
 
-pytestmark = pytest.mark.destructive
+pytestmark = pytest.mark.run_in_one_thread
 
 
 @pytest.fixture(scope='module')

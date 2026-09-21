@@ -19,8 +19,6 @@ import pytest
 
 from pytest_fixtures.component.usage_report import process_keys
 
-pytestmark = pytest.mark.destructive
-
 
 def compare_report_keys(report_keys, expected_keys):
     if report_keys != expected_keys:
